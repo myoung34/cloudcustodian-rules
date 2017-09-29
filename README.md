@@ -1,9 +1,9 @@
 # CloudCustodian Examples
 
 - [Cloud Custodian Examples](#cloudcustodian-examples)
-- [Filters](#rules)
+- [Filters](#filters)
     - [EC2](#ec2)
-    - [AWS Autoscaling Groups](#asg)
+    - [ASG](#asg)
     - [EBS](#ebs)
 - [Actions](#actions)
 - [Docker](#docker)
@@ -60,7 +60,7 @@
           - "State.Name": terminated
     ```
 
-## AWS Autoscaling Groups
+## ASG
 
 1. Look for any auto scaling groups using AMIs older than 120 days
 
