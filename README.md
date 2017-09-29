@@ -149,6 +149,47 @@ def lambda_handler(event, context):
     )
 ```
 
+My terraform for the lambda provides those env vars via remote state value  and a variable: 
+
+```
+resource "aws_lambda_function" "cloud-custodian" {
+  filename         = "lambda_cloud_custodian.zip"
+  function_name    = "cloud_custodian"
+  role             = "${data.terraform_remote_state.cloud_custodian_lambda_iam_role.role_arn}"
+  handler          = "lambda_function.lambda_handler"
+  source_code_hash = "${base64sha256(file("lambda_cloud_custodian.zip"))}"
+  runtime          = "python3.6"
+  timeout          = "30"
+
+  environment {
+    variables = {
+      CLUSTER             = "${var.cluster}"
+      TASK_DEFINITION_ARN = "${aws_ecs_task_definition.cloud_custodian.arn}"
+    }
+  }
+}
+
+resource "aws_cloudwatch_event_rule" "cloud_custodian_schedule" {
+  name                = "cloud_custodian_schedule"
+  description         = "Run every two hours"
+  schedule_expression = "rate(2 hours)"
+}
+
+resource "aws_cloudwatch_event_target" "cloud_custodian_lambda" {
+  rule = "${aws_cloudwatch_event_rule.cloud_custodian_schedule.name}"
+  arn  = "${aws_lambda_function.cloud-custodian.arn}"
+}
+
+resource "aws_lambda_permission" "allow_cloudwatch_to_call_cloud_custodian" {
+  statement_id  = "AllowExecutionFromCloudWatchToBeanstalkGarbageCollector"
+  action        = "lambda:InvokeFunction"
+  function_name = "${aws_lambda_function.cloud-custodian.function_name}"
+  principal     = "events.amazonaws.com"
+  source_arn    = "${aws_cloudwatch_event_rule.cloud_custodian_schedule.arn}"
+}
+ 
+```
+
 To streamline this, my Makefile looks like below.
 Note: my terraform for this has an output for the ECR URL
 
