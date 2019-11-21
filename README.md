@@ -30,6 +30,21 @@
         hours: 3
     ```
 
+1. React via CloudTrail to EIP creation:
+
+    ```
+    - name: ec2-elastic-ip-notify
+      resource: aws.network-addr
+      comment: Notify on elastic IP creation
+      mode:
+        type: cloudtrail
+        role: arn:aws:iam::123456789:role/cloud_custodian_lambda_role
+        events:
+          - source: ec2.amazonaws.com
+            event: AllocateAddress
+            ids: responseElements.publicIp
+    ```
+
 1. Ensure staging was torn down. Find instances whose name contain `staging` running for more than 14 hours: 
 
     ```
@@ -84,6 +99,67 @@
       filters:
         - Encrypted: false
         - "State.Name": running
+    ```
+
+## ELB
+
+1. React (CloudTrail subscription) to a public ELB creation
+
+    ```
+    - name: elb-notify-new-internet-facing
+      resource: elb
+      comment: Detect and alarm on internet facing ELBs
+      mode:
+        type: cloudtrail
+        role: arn:aws:iam::123456789:role/cloud_custodian_lambda_role
+        events:
+           - CreateLoadBalancer
+      description: |
+        Any newly created Classic Load Balancers launched with
+        an internet-facing schema.
+      filters:
+        - Scheme: internet-facing
+      ```
+
+## ALB (elbv2)
+
+1. React (CloudTrail subscription) to a public ELB creation
+
+    ```
+    - name: app-elb-notify-new-internet-facing
+     resource: app-elb
+     comment: Detect and alarm on internet facing ELBs
+     mode:
+       type: cloudtrail
+       role: arn:aws:iam::123456789:role/cloud_custodian_lambda_role
+       events:
+         - source: elasticloadbalancing.amazonaws.com
+           event: CreateLoadBalancer
+           ids: responseElements.loadBalancers[].loadBalancerName
+     description: |
+       Any newly created App Load Balancers launched with
+       an internet-facing schema.
+     filters:
+       - Scheme: internet-facing
+    ```
+
+## IAM 
+
+1. React (CloudTrail subscription) to a user creation
+
+    ```
+    - name: iam-user-creation
+      resource: iam-user
+      comment: detect and alarm on IAM user creation
+      mode:
+        type: cloudtrail
+        role: arn:aws:iam::123456789:role/cloud_custodian_lambda_role
+        events:
+          - source: iam.amazonaws.com
+            event: CreateUser
+            ids: requestParameters.userName
+      description: |
+        Any newly created user.
     ```
 
 # Actions
