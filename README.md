@@ -162,6 +162,44 @@
         Any newly created user.
     ```
 
+1. React (CloudTrail subscription) to a user deletion
+
+    ```
+    - name: iam-user-deletion
+      resource: iam-user
+      comment: Detect and alarm on IAM user deletion
+      mode:
+        type: cloudtrail
+        role: arn:aws:iam::123456789:role/cloud_custodian_role
+        events:
+          - source: iam.amazonaws.com
+            event: DeleteUser
+            ids: userIdentity.userName
+      description: |
+        Any deleted user.
+    ```
+
+1. React (CloudTrail subscription) to a failed login attempt from any user
+
+    ```
+    - name: iam-failed-login
+      resource: iam-user
+      comment: detect and alarm on IAM failed login
+      mode:
+        type: cloudtrail
+        role: arn:aws:iam::123456789:role/cloud_custodian_role
+        events:
+          - source: signin.amazonaws.com
+            event: ConsoleLogin
+            ids: userIdentity.userName
+      description: |
+        Any console login failure for an IAM user
+      filters:
+      - type: event
+        key: "detail.responseElements.ConsoleLogin"
+        value: Failure
+    ```
+
 # Actions
 
 1. Send to SNS (helpful for SNS to slack)
