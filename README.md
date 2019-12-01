@@ -223,7 +223,7 @@
 This is what my dockerfile looks like. Rules are in `cwd/rules` as individual `.yml` files.
 
 ```
-FROM capitalone/cloud-custodian
+FROM capitalone/c7n
 
 RUN apk add -U ca-certificates curl
 RUN curl -L https://github.com/Yelp/dumb-init/releases/download/v1.2.0/dumb-init_1.2.0_amd64 >/usr/local/bin/dumb-init
