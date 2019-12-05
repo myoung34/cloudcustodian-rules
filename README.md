@@ -16,6 +16,21 @@
 
 # Filters
 
+## PHD (Personal Health Dashboard)
+
+Note: This is pending a cloud-custodian release for [this commit](https://github.com/cloud-custodian/cloud-custodian/commit/e8c38d61f92142828cfebc0d77962e4ba6ef6dfd)
+
+```
+policies:
+  - name: phd-alerts
+    resource: account
+    comment: Olay PHD alerts
+    mode:
+      type: phd
+      role: arn:aws:iam::123456789:role/cloud_custodian_lambda_role
+    description: Any PHD alert
+```
+
 ## EC2
 
 1. Find instances whose name start with `packer` running for more than 3 hours: 
