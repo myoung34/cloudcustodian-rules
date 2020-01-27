@@ -8,6 +8,8 @@
     - [ELB](#elb)
     - [ALB](#alb-elbv2)
     - [IAM](#iam)
+    - [RDS](#rds)
+    - [Redshift](#redshift)
 - [Actions](#actions)
 - [Docker](#docker)
 - [Lambda As Cron](#Lambda)
@@ -217,6 +219,72 @@ policies:
         key: "detail.responseElements.ConsoleLogin"
         value: Failure
     ```
+
+## RDS 
+
+1. React (CloudTrail subscription) to a DB Instance being deleted while skipping the final snapshot
+
+    ```
+    - name: rds-instance-notify-delete-skip-final-snapshot
+      resource: rds
+      comment: Detect and alarm on RDS DB instances deleted while skipping final snapshot
+      mode:
+        type: cloudtrail
+        role: arn:aws:iam::123456789:role/cloud_custodian_role
+        events:
+          - source: rds.amazonaws.com
+            event: DeleteDBInstance
+            ids: requestParameters.dBInstanceIdentifier
+      description: Detect and alarm on RDS instances deleted while skipping final snapshot
+      filters:
+        - type: event
+          key: "detail.requestParameters.skipFinalSnapshot"
+          value: true
+    ```
+
+1. React (CloudTrail subscription) to a DB Cluster being deleted while skipping the final snapshot
+
+    ```
+    - name: rds-cluster-notify-delete-skip-final-snapshot
+      resource: rds
+      comment: Detect and alarm on RDS clusters deleted while skipping final snapshot
+      mode:
+        type: cloudtrail
+        role: arn:aws:iam::123456789:role/cloud_custodian_role
+        events:
+          - source: rds.amazonaws.com
+            event: DeleteDBCluster
+            ids: requestParameters.dBClusterIdentifier
+      description: Detect and alarm on RDS clusters deleted while skipping final snapshot
+      filters:
+        - type: event
+          key: "detail.requestParameters.skipFinalSnapshot"
+          value: true
+    ```
+
+
+## Redshift 
+
+1. React (CloudTrail subscription) to a Redshift cluster being deleted while skipping the final snapshot
+
+    ```
+    - name: redshift-notify-delete-skip-final-snapshot
+      resource: redshift
+      comment: Detect and alarm on Redshift clusters deleted while skipping final snapshot
+      mode:
+        type: cloudtrail
+        role: arn:aws:iam::123456789:role/cloud_custodian_role
+        events:
+          - source: redshift.amazonaws.com
+            event: DeleteCluster
+            ids: requestParameters.clusterIdentifier
+      description: Detect and alarm on Redshift clusters deleted while skipping final snapshot
+      filters:
+        - type: event
+          key: "detail.requestParameters.skipFinalClusterSnapshot"
+          value: true
+    ```
+
 
 # Actions
 
