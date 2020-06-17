@@ -2,7 +2,10 @@
 
 - [Cloud Custodian Examples](#cloudcustodian-examples)
 - [Filters](#filters)
+    - [Account](#account)
+    - [PHD](#phd)
     - [EC2](#ec2)
+    - [ECR](#ecr)
     - [ASG](#asg)
     - [EBS](#ebs)
     - [ELB](#elb)
@@ -18,9 +21,28 @@
 
 # Filters
 
-## PHD (Personal Health Dashboard)
+## Account
 
-Note: This is pending a cloud-custodian release for [this commit](https://github.com/cloud-custodian/cloud-custodian/commit/e8c38d61f92142828cfebc0d77962e4ba6ef6dfd)
+1. Alarm on root user account usage
+
+    ```
+    - name: root-user-login-detected
+      resource: account
+      description: A root account login has occurred
+      mode:
+        type: cloudtrail
+        events:
+           - ConsoleLogin
+        role: arn:aws:iam::123456789:role/cloud_custodian_lambda_role
+      filters:
+         - type: event
+           key: "detail.userIdentity.type"
+           value_type: swap
+           op: in
+           value: Root
+    ```
+
+## PHD (Personal Health Dashboard)
 
 ```
 policies:
@@ -93,6 +115,50 @@ policies:
           - "tag:Environment": absent
         - not:
           - "State.Name": terminated
+    ```
+
+## ECR
+
+1. Enable onPush vulnerability scanning
+
+    ```
+    - name: ecr-set-scanning
+      resource: aws.ecr
+      filters:
+        - type: value
+          key: imageScanningConfiguration.scanOnPush
+          value: false
+      actions:
+        - set-scanning
+    ```
+2. Enable lifecycles
+
+    ```
+    - name: ecr-add-lifecycle
+      resource: aws.ecr
+      filters:
+        - type: lifecycle-rule
+          state: false
+      actions:
+        - type: set-lifecycle
+          rules:
+            - rulePriority: 1
+              description: "remove untagged > 1 days"
+              selection:
+                countNumber: 1
+                countType: sinceImagePushed
+                countUnit: days
+                tagStatus: untagged
+              action:
+                type: expire
+            - rulePriority: 2
+              description: "remove any images after we reach 4000 in repo"
+              selection:
+                countNumber: 4000
+                countType: imageCountMoreThan
+                tagStatus: any
+              action:
+                type: expire
     ```
 
 ## ASG
