@@ -12,6 +12,7 @@
     - [ALB](#alb-elbv2)
     - [IAM](#iam)
     - [RDS](#rds)
+    - [S3](#s3)
     - [Redshift](#redshift)
 - [Actions](#actions)
 - [Docker](#docker)
@@ -327,6 +328,28 @@ policies:
           key: "detail.requestParameters.skipFinalSnapshot"
           value: true
     ```
+
+## S3 
+
+1. React (CloudTrail subscription) to an s3 bucket being created and check it for encryption
+
+    ```
+    - name: s3-bucket-create-without-encryption
+      resource: s3
+      comment: s3 bucket created without default encryption
+      mode:
+        type: cloudtrail
+        role: arn:aws:iam::1234567890:role/cloud_custodian_role
+        events:
+          - event: CreateBucket
+            source: s3.amazonaws.com
+            ids: requestParameters.bucketName
+      description: s3 bucket created without default encryption
+      filters:
+        - type: bucket-encryption
+          state: False
+    ```
+
 
 
 ## Redshift 
