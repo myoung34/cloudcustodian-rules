@@ -15,6 +15,7 @@
     - [S3](#s3)
     - [Redshift](#redshift)
 - [Actions](#actions)
+- [Cleanup](#cleanup)
 - [Docker](#docker)
 - [Lambda As Cron](#Lambda)
 
@@ -389,6 +390,51 @@ policies:
           type: sns
           topic: arn:aws:sns:us-east-1:111111111:topic-ops
     ```
+
+# Cleanup
+
+1. Cleanup everything
+
+    ```
+      policies:
+        - name: lambda-delete-cc-functions
+          resource: lambda
+          filters:
+            - "tag:custodian-info": present
+          actions:
+            - delete
+        - name: cloudwatch-delete-cc-log-group
+          resource: log-group
+          filters:
+            - type: value
+              key: logGroupName
+              value: '/aws/lambda/custodian-*'
+              op: glob
+          actions:
+            - delete
+        - name: cloudwatch-delete-cc-cw-rules
+          resource: aws.event-rule
+          filters:
+            - type: value
+              key: Name
+              value: 'custodian-*'
+              op: glob
+          actions:
+            - type: delete
+              force: true
+        - name: cloudwatch-delete-cc-rule-targets
+          resource: aws.event-rule-target
+          filters:
+            - type: value
+              key: Id
+              value: 'custodian-*'
+              op: glob
+          actions:
+            - type: delete
+              force: true
+    ```
+
+
 
 # Docker
 
